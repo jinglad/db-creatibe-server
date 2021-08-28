@@ -74,6 +74,9 @@ app.post("/addOrder", (req, res) => {
   const name = req.body.name;
   const price = req.body.price;
   const image = file.name;
+  const orderStatus = req.body.orderStatus;
+
+  // console.log(orderStatus);
 
   // storing the image
   file.mv(`${__dirname}/images/${file.name}`, (err) => {
@@ -86,8 +89,8 @@ app.post("/addOrder", (req, res) => {
 
   // storing the title and description to the database
   con.query(
-    "insert into orders (title, description, email, name, price, image) values (?,?,?,?,?,?)",
-    [title, description, email, name, price, image],
+    "insert into orders (title, description, email, name, price, image, status) values (?,?,?,?,?,?,?)",
+    [title, description, email, name, price, image, orderStatus],
     (err, result) => {
       if (err) {
         console.log(err);
@@ -138,7 +141,7 @@ app.get("/getReview", (req, res) => {
     if (err) {
       console.log(err);
     } else {
-      console.log(results);
+      // console.log(results);
       res.send(results);
     }
   });
@@ -151,7 +154,7 @@ app.get("/customerOrders", (req, res) => {
     if (err) {
       console.log(err);
     } else {
-      console.log(results);
+      // console.log(results);
       res.send(results);
     }
   });
@@ -172,7 +175,7 @@ app.post("/addAdmin", (req, res) => {
 // Admins Api
 app.get("/admins", (req, res) => {
   con.query("select * from admins", (err, results) => {
-    console.log(results);
+    // console.log(results);
     res.send(results);
   });
 });
@@ -181,7 +184,45 @@ app.get("/admins", (req, res) => {
 app.delete("/deleteOrder/:id", (req, res) => {
   const id = req.params.id;
   con.query(`delete from orders where oid=${id}`, (err, result) => {
-    console.log(result);
+    // console.log(result);
     res.send(result);
   });
+});
+
+// Update Ordered Service Api
+app.put("/updateOrder", (req, res) => {
+  // const id = req.query.id;
+  const { id, description, price } = req.body;
+  const file = req.files.file;
+  const image = file.name;
+
+  // console.log("update api called ", id, description, price, image);
+
+  // storing the image
+  file.mv(`${__dirname}/images/${file.name}`, (err) => {
+    if (err) {
+      console.log(err);
+      return res.status(500).send({ msg: "Failed to upload" });
+    }
+  });
+
+  con.query(
+    `UPDATE orders SET description='${description}',price='${price}',image='${image}' where oid=${id}`,
+    (err, result) => {
+      // console.log(result);
+      res.send(result);
+    }
+  );
+});
+
+// update order status api
+app.put("/updateStatus", (req, res) => {
+  const { id, status } = req.body;
+  con.query(
+    `update orders set status='${status}' where oid=${id}`,
+    (err, result) => {
+      res.send(result);
+    }
+  );
+  // console.log(id, status);
 });
